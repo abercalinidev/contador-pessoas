@@ -1,6 +1,36 @@
-criar um arquivo no mesmo nivel que o projeto com o nome main.py
+# Contador de Pessoas com Câmera e YOLO
 
-com exatamente esse codigo
+Este projeto é um aplicativo de contagem de pessoas em tempo real utilizando a câmera do dispositivo e o modelo YOLO para detecção de pessoas. O backend é feito com FastAPI e o frontend com React Native (Expo).
+
+---
+
+## 🔹 Estrutura do Projeto
+
+contador-pessoas/
+│
+├─ App.js # Aplicativo React Native
+├─ package.json # Dependências do frontend
+├─ main.py # Servidor FastAPI
+├─ venv/ # Ambiente virtual Python (opcional)
+└─ ...
+
+
+---
+
+## 🔹 Backend (FastAPI + YOLO)
+
+### 1. Criar ambiente virtual (opcional, recomendado):
+
+```bash
+python -m venv venv
+
+venv\Scripts\activate
+
+
+pip install fastapi uvicorn python-multipart pillow
+pip install ultralytics
+
+crie um arquivo chamado main.py com esse codigo.
 
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -19,10 +49,10 @@ class Frame(BaseModel):
 
 @app.post("/process")
 async def process_frame(data: Frame):
-    # 1. Decodifica Base64 ? bytes
+    # 1. Decodifica Base64 → bytes
     img_bytes = base64.b64decode(data.image)
 
-    # 2. Converte bytes ? imagem PIL
+    # 2. Converte bytes → imagem PIL
     img = Image.open(io.BytesIO(img_bytes))
 
     # 3. Roda YOLO na imagem
@@ -39,15 +69,15 @@ async def process_frame(data: Frame):
         "people": person_count
     }
 
-entrar no mesmo ambiente que esta seu projeto e executar....
 
-{{ python -m venv venv }} cria uma pasta necessaria para criar um servidor python.
-{{ venv\Scripts\activate }} entrar no cmd dentro do servidor
-{{ pip install fastapi uvicorn python-multipart pillow }} instala as depencencias necessarias
-{{ pip install ultralytics }} mais dependencias
+uvicorn main:app --reload --host 0.0.0.0 --port 8000 -- rodar o servidor
 
-{{ uvicorn main:app --reload --host 0.0.0.0 --port 8000 }} sobre o servidor.
 
-testa usar http://localhost:8000/docs
 
+
+
+dependencias do projeto...
+
+npm install axios
+npx expo install expo-camera expo-status-bar
 
