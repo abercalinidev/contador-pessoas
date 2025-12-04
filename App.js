@@ -13,6 +13,10 @@ export default function App() {
   const [facing, setFacing] = useState('back'); // 'back' ou 'front'
   const cameraRef = useRef(null);
 
+  const [cameraWidth, setCameraWidth] = useState(0);
+  const [cameraHeight, setCameraHeight] = useState(0);
+  const [boxes, setBoxes] = useState([]); // Armazena coordenadas das pessoas
+
   // Solicita permissão ao iniciar
   useEffect(() => {
     if (permission?.granted === false) {
@@ -46,7 +50,25 @@ export default function App() {
         image: photo.base64,
       });
 
+      // Contagem de pessoas
       setPeopleCount(response.data.people || 0);
+
+      // Recebe caixas do servidor (opcional)
+      const detectedBoxes = response.data.boxes || []; // precisa do backend enviar boxes [x1,y1,x2,y2]
+      
+      // Normaliza para a tela
+      const scaleX = cameraWidth / photo.width;
+      const scaleY = cameraHeight / photo.height;
+
+      const normalizedBoxes = detectedBoxes.map(box => ({
+        x: box[0] * scaleX,
+        y: box[1] * scaleY,
+        width: (box[2] - box[0]) * scaleX,
+        height: (box[3] - box[1]) * scaleY,
+      }));
+
+      setBoxes(normalizedBoxes);
+
     } catch (error) {
       console.log('Erro ao enviar frame:', error.message);
     } finally {
@@ -58,7 +80,7 @@ export default function App() {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
   };
 
-  // Tela de permissão
+  // Permissão
   if (!permission || permission.granted === null) {
     return (
       <View style={styles.centered}>
@@ -76,7 +98,6 @@ export default function App() {
     );
   }
 
-  // Tela inicial
   if (!showCamera) {
     return (
       <View style={styles.centered}>
@@ -92,9 +113,30 @@ export default function App() {
       <CameraView
         ref={cameraRef}
         style={{ flex: 1 }}
-        cameraType={facing} // usa string 'back' ou 'front'
+        cameraType={facing}
         onCameraReady={() => setCameraReady(true)}
+        onLayout={e => {
+          setCameraWidth(e.nativeEvent.layout.width);
+          setCameraHeight(e.nativeEvent.layout.height);
+        }}
       />
+
+      {/* Retângulos das pessoas */}
+      {boxes.map((box, index) => (
+        <View
+          key={index}
+          style={{
+            position: 'absolute',
+            left: box.x,
+            top: box.y,
+            width: box.width,
+            height: box.height,
+            borderWidth: 2,
+            borderColor: 'red',
+            borderRadius: 4,
+          }}
+        />
+      ))}
 
       <View style={styles.overlay}>
         <Text style={styles.text}>Pessoas detectadas: {peopleCount}</Text>
