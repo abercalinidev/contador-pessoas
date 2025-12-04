@@ -54,20 +54,29 @@ async def process_frame(data: Frame):
 
     # 2. Converte bytes → imagem PIL
     img = Image.open(io.BytesIO(img_bytes))
+    width, height = img.size
 
     # 3. Roda YOLO na imagem
     results = model(img)
 
-    # 4. Conta quantas pessoas foram detectadas
     person_count = 0
+    boxes = []
+
+    # 4. Processa as detecções
     for box in results[0].boxes:
         if int(box.cls) == 0:  # classe 0 = pessoa
             person_count += 1
 
-    # 5. Retorna resposta para o app
+            # Extrai coordenadas da caixa
+            x1, y1, x2, y2 = box.xyxy[0].tolist()  # xyxy é [x1, y1, x2, y2]
+            boxes.append([x1, y1, x2, y2])
+
+    # 5. Retorna contagem + coordenadas das caixas
     return {
-        "people": person_count
+        "people": person_count,
+        "boxes": boxes
     }
+
 
 
 uvicorn main:app --reload --host 0.0.0.0 --port 8000 -- rodar o servidor
